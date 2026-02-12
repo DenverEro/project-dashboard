@@ -1,19 +1,16 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # FocusFlow Dashboard
 
-ADHD-friendly project management dashboard with offline-first capabilities and Supabase sync for OpenClaw integration.
+A dark-themed, ADHD-friendly project management dashboard designed for visual organization and real-time collaboration. Built with React, TypeScript, and Supabase.
 
 ## Features
 
-- **Kanban Board** with drag-and-drop task management
-- **Offline-First** - Works without internet, syncs when available
-- **Supabase Integration** - REST API + Realtime sync for OpenClaw
-- **Mobile Responsive** - List view for mobile, board view for desktop
-- **Stalled Tasks** - Visual alerts for tasks stuck too long
-- **Weather & Time** - Live widgets for Saint Johns, MI (48879)
+- **Kanban Board** - Drag-and-drop task management with four columns (Todo, In Progress, Done, Stalled)
+- **Stalled Task Detection** - Visual alerts when tasks sit too long in "In Progress"
+- **Real-time Sync** - Supabase integration for instant updates across all clients
+- **OpenClaw Integration** - REST API support for automated task creation
+- **Mobile Responsive** - Adaptive layout with list view for mobile, board view for desktop
+- **Project Management** - Organize tasks by projects with type categorization (Business, Hobby, Personal)
+- **Weather & Time** - Live widgets showing current conditions and time for Saint Johns, MI
 
 ## Quick Start
 
@@ -84,39 +81,23 @@ This dashboard is designed to work with OpenClaw via Supabase REST API.
 
 ### API Endpoints
 
-All data operations are available through the `supabaseApi` object:
+All data operations are available through the Supabase REST API:
 
-```typescript
-import { supabaseApi } from './supabase';
+```bash
+# Get all tasks
+curl https://your-project.supabase.co/rest/v1/tasks \
+  -H "apikey: your-anon-key"
 
-// Projects
-const projects = await supabaseApi.getProjects();
-await supabaseApi.createProject({ name: 'New Project', ... });
-
-// Tasks
-const tasks = await supabaseApi.getTasks();
-await supabaseApi.moveTask(taskId, 'Done');
-
-// Documents
-const docs = await supabaseApi.getDocuments();
+# Create a task
+curl -X POST https://your-project.supabase.co/rest/v1/tasks \
+  -H "apikey: your-anon-key" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "New Task", "status": "Todo", "project_id": "uuid"}'
 ```
 
 ### Realtime Sync
 
-Subscribe to changes for live updates:
-
-```typescript
-const subscription = supabaseApi.subscribeToTasks((payload) => {
-  console.log('Task changed:', payload);
-});
-```
-
-### Hybrid Mode
-
-The app works offline by default:
-- Data loads from localStorage instantly
-- Syncs to Supabase in background when configured
-- Falls back to localStorage if Supabase is unavailable
+Changes made via API appear instantly in the dashboard through Supabase realtime subscriptions.
 
 ## Project Structure
 
@@ -125,16 +106,38 @@ The app works offline by default:
 │   ├── KanbanBoard.tsx      # Drag-and-drop board
 │   ├── TaskList.tsx         # Mobile list view
 │   ├── TaskCard.tsx         # Individual task card
+│   ├── ProjectsTable.tsx    # Project listing
 │   ├── DetailPanel.tsx      # Slide-out edit panel
 │   ├── StatsBar.tsx         # Dashboard metrics
 │   ├── WeatherWidget.tsx    # Weather display
 │   └── DateTimeDisplay.tsx  # Clock widget
-├── store.ts                 # State management + Supabase sync
-├── supabase.ts             # REST API client
-├── supabase-schema.sql     # Database setup
-├── constants.tsx           # Initial data
-└── types.ts               # TypeScript types
+├── hooks/
+│   ├── useTasks.ts          # Tasks CRUD + realtime
+│   ├── useProjects.ts       # Projects CRUD + realtime
+│   └── useDocs.ts           # Documents CRUD + realtime
+├── supabase.ts              # Supabase client config
+├── supabase-schema.sql      # Database setup
+└── types.ts                 # TypeScript types
 ```
+
+## Future Updates
+
+### Planned Features
+
+- [ ] **Column Sorting** - Click column headers on the Projects page to sort by Name, Status, Type, Tasks, or Created date
+- [ ] **Task Filtering** - Filter tasks by project, priority, or assignee
+- [ ] **Bulk Operations** - Select and move multiple tasks at once
+- [ ] **Due Date Notifications** - Visual alerts for tasks approaching deadline
+- [ ] **Export/Import** - JSON backup and restore functionality
+- [ ] **Dark/Light Theme** - Toggle between dark and light modes
+
+### Technical Improvements
+
+- [ ] Add loading skeletons for better UX
+- [ ] Implement optimistic updates for instant feedback
+- [ ] Add keyboard shortcuts for power users
+- [ ] Create PWA for offline functionality
+- [ ] Add task time tracking
 
 ## Customization
 

@@ -1,126 +1,113 @@
-# Development Session Log - 2026-02-12 (Rebuild)
+# Development Session Log - 2026-02-12 (Rebuild + Supabase Integration)
 
 ## The Objective
-Scrap the over-engineered Supabase-backed dashboard and rebuild a leaner, faster, truly offline-first ADHD project management tool. The goal: eliminate backend dependencies, simplify the architecture, and focus on core functionality that actually helps with task management and procrastination.
+Rebuild the ADHD project management dashboard with a focus on simplicity and real-world usability, then integrate Supabase for real-time sync and OpenClaw API compatibility.
 
-## The Struggle
+## The Evolution
 
-### Lessons from the First Attempt:
+### Phase 1: The Strip-Down
+Initially removed Supabase to create a lean, offline-first app with localStorage. This worked but lacked the collaborative features needed for OpenClaw integration.
 
-1. **Over-Engineering Trap**: The first version used Supabase for real-time sync, which felt impressive but added unnecessary complexity for a personal dashboard. Authentication, connection errors, and network latency became friction points.
+### Phase 2: The Re-Integration
+Added Supabase back with a smarter approach:
+- **Hybrid Architecture**: Frontend uses camelCase (JavaScript convention), database uses snake_case (SQL convention)
+- **Data Transformation Layer**: Created transform functions in hooks to handle the conversion seamlessly
+- **Realtime Subscriptions**: Live updates when tasks are created via API
+- **REST API Ready**: OpenClaw can create tasks via standard HTTP requests
 
-2. **Drag-and-Drop Overhead**: `@hello-pangea/dnd` provided slick interactions but required significant state management gymnastics. For ADHD workflows, sometimes simple click-to-edit is clearer than drag gestures.
+## Key Technical Wins
 
-3. **Routing Complexity**: React Router added structure but felt like overkill for a dashboard that could work as a single-page app with view switching.
-
-### Technical Decisions During Rebuild:
-
-1. **State Management Pivot**: Moving from Supabase to localStorage felt like a step backward initially, but it delivered:
-   - Instant load times (no network round-trips)
-   - Zero authentication friction
-   - Data survives browser restarts
-   - Easy data export/import for backup
-
-2. **Component Granularity**: Broke monolithic components into focused pieces:
-   - `KanbanBoard` → Just the columns and layout
-   - `TaskCard` → Individual task representation with stalled detection
-   - `DetailPanel` → Reusable slide-out panel for both tasks and projects
-   - `StatsBar` → Quick metrics without overwhelming dashboards
-
-3. **Stalled Task Concept**: The breakthrough feature. When a task sits in "In Progress" too long or gets explicitly marked as "Stalled":
-   - Visual red border and pulse animation
-   - Timestamp tracking for accountability
-   - Appears in its own column to force confrontation
-   - DPC ($ Daily Progress Cost) metric to gamify momentum
-
-4. **Design Philosophy Shift**:
-   - **Before**: Feature-rich, real-time, collaborative
-   - **After**: Focused, offline, personal, accountability-driven
-
-## The Breakthrough
-
-The architecture crystallized around these principles:
-
-### 1. Single Source of Truth
+### 1. Snake Case to Camel Case Bridge
 ```typescript
-// store.ts - Custom hook with localStorage persistence
-const useStore = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  // Auto-save to localStorage on every change
-}
+// Transform snake_case from Supabase to camelCase for frontend
+const transformTaskFromDB = (dbTask: any): Task => ({
+  id: dbTask.id,
+  title: dbTask.title,
+  projectId: dbTask.project_id,  // snake → camel
+  dueDate: dbTask.due_date,      // snake → camel
+  stalledAt: dbTask.stalled_at,  // snake → camel
+  updatedAt: dbTask.updated_at   // snake → camel
+});
 ```
 
-### 2. Stalled Detection Algorithm
+This pattern appears in all three hooks (useTasks, useProjects, useDocs) and solved the "Invalid Date" and data persistence issues.
+
+### 2. Date Handling Without Timezone Bugs
+Discovered that `new Date("2026-02-15")` interprets as UTC midnight, causing off-by-one-day errors in local timezones. Fixed by parsing explicitly:
 ```typescript
-const isStalledLong = task.status === 'Stalled' && 
-  task.stalledAt && 
-  (Date.now() - new Date(task.stalledAt).getTime() > 86400000); // 24h
+const [year, month, day] = task.dueDate.split('-').map(Number);
+const date = new Date(year, month - 1, day); // Local time
 ```
 
-### 3. DPC (Daily Progress Cost) Gamification
-- Goal: $10,000 DPC (represents value of completed work)
-- Current progress bar visualization
-- Turns productivity into a financial metric
+### 3. Fahrenheit Weather
+Open-Meteo API defaults to Celsius. Added `&temperature_unit=fahrenheit` parameter for US-based users.
 
-### 4. Unified Detail Panel
-- Single `DetailPanel` component handles both tasks and projects
-- Props-based polymorphism (`type: 'task' | 'project'`)
-- Eliminates duplicate form logic
+### 4. Project Type Simplification
+Changed from corporate terminology (Agency/Internal/Content) to personal categories:
+- **Business** - Work-related projects
+- **Hobby** - Side projects and learning
+- **Personal** - Life admin and self-care
 
-## Time Audit
+### 5. Dynamic Task Counting
+ProjectsTable now calculates task counts in real-time by filtering the tasks array, rather than relying on the static `task_count` database field. This ensures the number always matches what's actually on the board.
 
-**Estimated Deep Work**: 3-4 hours
-- Analysis of first version's pain points: 20 minutes
-- Architecture redesign (store pattern): 45 minutes
-- Component decomposition: 1 hour
-- Detail panel implementation: 45 minutes
-- Stalled logic and visual indicators: 30 minutes
-- Polish and type safety: 30 minutes
+## Bug Fixes & Polish
 
-**Time Saved vs First Version**: ~50% reduction in complexity
+1. **Project Save Button** - Was calling empty function, now properly wired to updateProject
+2. **Task Card Date Display** - Fixed "Invalid Date" and timezone offset issues
+3. **Status/Type Persistence** - Project changes now save to Supabase and persist
+4. **Polling Removal** - Removed 10-second polling once realtime subscriptions proved stable
+5. **Mobile View Toggle** - Added Board/List view toggle for desktop users
+
+## OpenClaw Integration Success
+
+The dashboard now works seamlessly with OpenClaw:
+- Tasks created via REST API appear instantly (via realtime)
+- No authentication barriers (RLS policies allow anonymous access)
+- Data transformations handle both manual edits and API-created tasks uniformly
 
 ## Stack Summary
 
 - **Frontend**: React 19 + TypeScript + Vite
-- **Styling**: Tailwind CSS (pure black background, zinc accents)
-- **State**: Custom `useStore` hook with localStorage persistence
+- **Styling**: Tailwind CSS (dark theme)
+- **Backend**: Supabase (PostgreSQL + Realtime)
+- **Drag & Drop**: @hello-pangea/dnd
 - **Icons**: Lucide React
-- **Dependencies Removed**:
-  - @supabase/supabase-js
-  - @hello-pangea/dnd (drag-and-drop)
-  - react-router-dom
-  - No more SQL schemas or backend setup
+- **State Management**: Custom hooks with Supabase integration
 
 ## Key Files
 
-- `store.ts` - Central state management with localStorage sync
-- `constants.tsx` - Initial seed data (7 projects, 6 tasks, 5 docs)
-- `types.ts` - Strict TypeScript interfaces with new "Stalled" status
-- `components/KanbanBoard.tsx` - Four-column layout (Todo, In Progress, Done, Stalled)
-- `components/TaskCard.tsx` - Visual stalled detection with pulse animation
-- `components/DetailPanel.tsx` - Unified editing interface
-- `components/StatsBar.tsx` - DPC progress and stalled metrics
+- `hooks/useTasks.ts` - Task CRUD + realtime + data transformation
+- `hooks/useProjects.ts` - Project CRUD + realtime + data transformation
+- `hooks/useDocs.ts` - Document CRUD + realtime + data transformation
+- `supabase-schema.sql` - Complete database schema with RLS policies
+- `components/DetailPanel.tsx` - Unified editing for tasks and projects
+- `components/WeatherWidget.tsx` - Weather with Fahrenheit support
+
+## Time Audit
+
+**Total Development Time**: ~6 hours
+- Initial rebuild (offline-first): 3 hours
+- Supabase integration: 2 hours
+- Bug fixes and polish: 1 hour
 
 ## Reflection
 
-This rebuild taught me that "simpler is better" isn't just a platitude—it's an architectural strategy. By removing Supabase, I:
+The journey from "over-engineered" → "too simple" → "just right" taught valuable lessons about architectural balance. The key insight: **complexity should match the actual use case**. 
 
-- Eliminated the "backend not configured" error screen
-- Removed authentication friction
-- Cut build dependencies by 60%
-- Improved load time from ~2s to instant
+For a personal dashboard, localStorage would suffice. But for OpenClaw integration (automated task creation), Supabase provides the necessary API surface while keeping the frontend code clean.
 
-The "Stalled" concept emerged from real ADHD struggles: tasks that sit in "In Progress" for days create guilt and avoidance. Making them visually prominent (red borders, pulse animation, dedicated column) turns avoidance into confrontation.
+The data transformation pattern (snake ↔ camel) is now a reusable template for any Supabase + TypeScript project. It decouples the database schema from the frontend types, allowing both to evolve independently.
 
-The DPC metric ($10k goal) gamifies productivity. It's fake money, but the progress bar creates dopamine hits when tasks move to "Done."
+**Most Satisfying**: Seeing a task appear instantly in the dashboard after creating it via curl command. The realtime subscription working perfectly makes the whole system feel alive.
 
-**Most Satisfying**: The DetailPanel's reusability. One component, two use cases, zero duplication. Clean code feels like clean room.
+## Next Steps
 
-## Next Steps (Future Session)
-
-- Data export/import (JSON backup)
-- Recurring tasks support
-- Time tracking per task
-- Dark/light theme toggle (currently pure black)
-- Keyboard shortcuts for power users
+- [ ] Column sorting on Projects page (click headers to sort)
+- [ ] Task filtering by project, priority, or assignee
+- [ ] Bulk operations (move multiple tasks)
+- [ ] Due date notifications
+- [ ] JSON export/import for backups
+- [ ] Dark/light theme toggle
+- [ ] Keyboard shortcuts
+- [ ] Time tracking per task
