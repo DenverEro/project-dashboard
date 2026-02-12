@@ -15,7 +15,7 @@ import { useProjects, useTasks, useDocs } from './hooks';
 const MOBILE_BREAKPOINT = 1024;
 
 const App: React.FC = () => {
-  const { projects, loading: projectsLoading } = useProjects();
+  const { projects, loading: projectsLoading, updateProject, deleteProject: deleteProjectHook } = useProjects();
   const { tasks, loading: tasksLoading, insertTask, updateTask, deleteTask, moveTask } = useTasks();
   const { docs, loading: docsLoading } = useDocs();
   
@@ -85,6 +85,24 @@ const App: React.FC = () => {
       setSelectedTask(null);
     } catch (err) {
       console.error('Failed to delete task:', err);
+    }
+  };
+
+  const handleSaveProject = async (data: Project) => {
+    try {
+      await updateProject(data.id, data);
+      setSelectedProject(null);
+    } catch (err) {
+      console.error('Failed to save project:', err);
+    }
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    try {
+      await deleteProjectHook(id);
+      setSelectedProject(null);
+    } catch (err) {
+      console.error('Failed to delete project:', err);
     }
   };
 
@@ -213,10 +231,8 @@ const App: React.FC = () => {
         data={selectedProject} 
         projects={projects}
         onClose={() => setSelectedProject(null)} 
-        onSave={(data) => {
-          setSelectedProject(null);
-        }}
-        onDelete={() => setSelectedProject(null)}
+        onSave={handleSaveProject}
+        onDelete={handleDeleteProject}
       />
     </div>
   );
