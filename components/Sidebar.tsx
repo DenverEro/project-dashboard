@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, FolderKanban, FileText, Settings, HelpCircle, ChevronLeft, ChevronRight, FileSearch } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, FileText, Settings, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { View } from '../types';
 
 interface SidebarProps {
@@ -14,7 +14,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, on
   const items: { label: View; icon: React.ReactNode }[] = [
     { label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { label: 'Projects', icon: <FolderKanban size={20} /> },
-    { label: 'Content', icon: <FileSearch size={20} /> },
     { label: 'Documents', icon: <FileText size={20} /> },
   ];
 

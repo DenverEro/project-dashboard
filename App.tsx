@@ -24,6 +24,7 @@ const App: React.FC = () => {
           tasks={store.tasks} 
           projects={store.projects} 
           onTaskClick={setSelectedTask} 
+          onMoveTask={store.moveTask}
           onAddTask={(status) => setSelectedTask({
             id: Math.random().toString(36).substr(2, 9),
             title: '',
@@ -42,7 +43,6 @@ const App: React.FC = () => {
           onProjectClick={setSelectedProject} 
         />;
       case 'Documents':
-      case 'Content':
         return <DocsList docs={store.docs} projects={store.projects} />;
       default:
         return <div>View not implemented</div>;

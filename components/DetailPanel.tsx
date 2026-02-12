@@ -3,6 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { Task, Project, Priority, Status, ProjectStatus, ProjectType } from '../types';
 import { X, Trash2, Save, Calendar, Clock } from 'lucide-react';
 
+const PROJECT_COLORS = [
+  { name: 'indigo', class: 'bg-indigo-500' },
+  { name: 'blue', class: 'bg-blue-500' },
+  { name: 'cyan', class: 'bg-cyan-500' },
+  { name: 'emerald', class: 'bg-emerald-500' },
+  { name: 'orange', class: 'bg-orange-500' },
+  { name: 'pink', class: 'bg-pink-500' },
+  { name: 'purple', class: 'bg-purple-500' },
+  { name: 'red', class: 'bg-red-500' },
+  { name: 'zinc', class: 'bg-zinc-500' },
+];
+
 interface DetailPanelProps {
   type: 'task' | 'project';
   isOpen: boolean;
@@ -152,6 +164,24 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ type, isOpen, data, projects,
               <div className="flex items-center gap-2 p-3 rounded-lg bg-red-900/20 border border-red-900/30 text-red-400 text-xs">
                 <Clock size={14} />
                 <span>Stalled since: {new Date(formData.stalledAt).toLocaleString()}</span>
+              </div>
+            )}
+
+            {!isTask && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Project Color</label>
+                <div className="flex flex-wrap gap-2">
+                  {PROJECT_COLORS.map((color) => (
+                    <button
+                      key={color.name}
+                      onClick={() => setFormData({ ...formData, color: color.name })}
+                      className={`w-8 h-8 rounded-lg ${color.class} transition-all hover:scale-110 ${
+                        formData.color === color.name ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-950' : 'opacity-70 hover:opacity-100'
+                      }`}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
