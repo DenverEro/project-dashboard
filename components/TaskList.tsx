@@ -112,7 +112,11 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, onTaskClick, onAdd
                         <div className="flex items-center gap-1 text-zinc-500">
                           <Calendar size={10} />
                           <span className="text-[10px]">
-                            {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            {task.dueDate ? (() => {
+                              const [year, month, day] = task.dueDate.split('-').map(Number);
+                              const date = new Date(year, month - 1, day);
+                              return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                            })() : 'No date'}
                           </span>
                         </div>
 

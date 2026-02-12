@@ -52,7 +52,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, project, onClick }) => {
       <div className="flex items-center justify-between text-[11px] text-zinc-500">
         <div className="flex items-center gap-1">
           <Calendar size={12} />
-          <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'No date'}</span>
+          <span>{task.dueDate ? (() => {
+            // Parse date as local time to avoid timezone offset issues
+            const [year, month, day] = task.dueDate.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          })() : 'No date'}</span>
         </div>
         <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 text-[9px] font-bold uppercase tracking-tighter">
           {task.assignee}
