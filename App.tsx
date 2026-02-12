@@ -10,6 +10,8 @@ import DocsList from './components/DocsList';
 import StatsBar from './components/StatsBar';
 import DetailPanel from './components/DetailPanel';
 import { Search, Bell, Plus, Menu, LayoutGrid, List } from 'lucide-react';
+import WeatherWidget from './components/WeatherWidget';
+import DateTimeDisplay from './components/DateTimeDisplay';
 
 const MOBILE_BREAKPOINT = 1024;
 
@@ -105,6 +107,12 @@ const App: React.FC = () => {
               <Menu size={20} />
             </button>
             <h1 className="text-lg font-semibold tracking-tight">{currentView}</h1>
+          </div>
+          
+          {/* Date/Time and Weather - Center */}
+          <div className="hidden md:flex items-center gap-3">
+            <DateTimeDisplay />
+            <WeatherWidget />
           </div>
           
           <div className="flex items-center gap-3">
