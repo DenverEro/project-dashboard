@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect } from 'react';
-import { useStore } from './store';
 import { View, Task, Project } from './types';
 import Sidebar from './components/Sidebar';
 import KanbanBoard from './components/KanbanBoard';
@@ -9,14 +7,18 @@ import ProjectsTable from './components/ProjectsTable';
 import DocsList from './components/DocsList';
 import StatsBar from './components/StatsBar';
 import DetailPanel from './components/DetailPanel';
-import { Search, Bell, Plus, Menu, LayoutGrid, List } from 'lucide-react';
+import { Search, Bell, Menu, LayoutGrid, List } from 'lucide-react';
 import WeatherWidget from './components/WeatherWidget';
 import DateTimeDisplay from './components/DateTimeDisplay';
+import { useProjects, useTasks, useDocs } from './hooks';
 
 const MOBILE_BREAKPOINT = 1024;
 
 const App: React.FC = () => {
-  const store = useStore();
+  const { projects, loading: projectsLoading } = useProjects();
+  const { tasks, loading: tasksLoading, insertTask, updateTask, deleteTask, moveTask } = useTasks();
+  const { docs, loading: docsLoading } = useDocs();
+  
   const [currentView, setCurrentView] = useState<View>('Dashboard');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -33,53 +35,82 @@ const App: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const handleAddTask = async (status: Task['status']) => {
+    const newTask = {
+      title: 'New Task',
+      description: '',
+      status: status,
+      priority: 'Medium' as const,
+      project_id: projects[0]?.id || '',
+      due_date: new Date().toISOString().split('T')[0],
+      assignee: 'AC'
+    };
+
+    try {
+      const created = await insertTask(newTask);
+      setSelectedTask(created);
+    } catch (err) {
+      console.error('Failed to create task:', err);
+    }
+  };
+
+  const handleSaveTask = async (data: Task) => {
+    try {
+      if (tasks.find(t => t.id === data.id)) {
+        await updateTask(data.id, data);
+      } else {
+        await insertTask(data);
+      }
+      setSelectedTask(null);
+    } catch (err) {
+      console.error('Failed to save task:', err);
+    }
+  };
+
+  const handleDeleteTask = async (id: string) => {
+    try {
+      await deleteTask(id);
+      setSelectedTask(null);
+    } catch (err) {
+      console.error('Failed to delete task:', err);
+    }
+  };
+
   const renderContent = () => {
+    if (projectsLoading || tasksLoading || docsLoading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-zinc-500">Loading...</div>
+        </div>
+      );
+    }
+
     switch (currentView) {
       case 'Dashboard':
         const showListView = isMobile || forceListView;
         return showListView ? (
           <TaskList 
-            tasks={store.tasks} 
-            projects={store.projects} 
+            tasks={tasks} 
+            projects={projects} 
             onTaskClick={setSelectedTask}
-            onAddTask={(status) => setSelectedTask({
-              id: Math.random().toString(36).substr(2, 9),
-              title: '',
-              description: '',
-              status: status,
-              priority: 'Medium',
-              projectId: store.projects[0]?.id || '',
-              dueDate: new Date().toISOString().split('T')[0],
-              assignee: 'AC',
-              lastUpdated: new Date().toISOString()
-            })}
+            onAddTask={handleAddTask}
           />
         ) : (
           <KanbanBoard 
-            tasks={store.tasks} 
-            projects={store.projects} 
+            tasks={tasks} 
+            projects={projects} 
             onTaskClick={setSelectedTask} 
-            onMoveTask={store.moveTask}
-            onAddTask={(status) => setSelectedTask({
-              id: Math.random().toString(36).substr(2, 9),
-              title: '',
-              description: '',
-              status: status,
-              priority: 'Medium',
-              projectId: store.projects[0]?.id || '',
-              dueDate: new Date().toISOString().split('T')[0],
-              assignee: 'AC',
-              lastUpdated: new Date().toISOString()
-            })}
+            onMoveTask={moveTask}
+            onAddTask={handleAddTask}
           />
         );
       case 'Projects':
         return <ProjectsTable 
-          projects={store.projects} 
+          projects={projects} 
           onProjectClick={setSelectedProject} 
         />;
       case 'Documents':
-        return <DocsList docs={store.docs} projects={store.projects} />;
+        return <DocsList docs={docs} projects={projects} />;
       default:
         return <div>View not implemented</div>;
     }
@@ -87,7 +118,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-black overflow-hidden font-sans">
-      {/* Sidebar */}
       <Sidebar 
         currentView={currentView} 
         onViewChange={setCurrentView} 
@@ -95,9 +125,7 @@ const App: React.FC = () => {
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
-      {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
         <header className="h-14 border-b border-zinc-900 flex items-center justify-between px-6 bg-black/50 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button 
@@ -109,7 +137,6 @@ const App: React.FC = () => {
             <h1 className="text-lg font-semibold tracking-tight">{currentView}</h1>
           </div>
           
-          {/* Date/Time and Weather - Center */}
           <div className="hidden md:flex items-center gap-3">
             <DateTimeDisplay />
             <WeatherWidget />
@@ -151,44 +178,30 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Dashboard Metrics Bar */}
-        {currentView === 'Dashboard' && <StatsBar tasks={store.tasks} />}
+        {currentView === 'Dashboard' && <StatsBar tasks={tasks} />}
 
-        {/* Page Content */}
         <div className="flex-1 overflow-auto bg-black p-6">
           {renderContent()}
         </div>
       </main>
 
-      {/* Side Detail Panels (Slide out) */}
       <DetailPanel 
         type="task"
         isOpen={!!selectedTask} 
         data={selectedTask} 
-        projects={store.projects}
+        projects={projects}
         onClose={() => setSelectedTask(null)} 
-        onSave={(data) => {
-          if (store.tasks.find(t => t.id === data.id)) {
-            store.updateTask(data as Task);
-          } else {
-            store.addTask(data as Task);
-          }
-          setSelectedTask(null);
-        }}
-        onDelete={(id) => {
-          store.deleteTask(id);
-          setSelectedTask(null);
-        }}
+        onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
       />
 
       <DetailPanel 
         type="project"
         isOpen={!!selectedProject} 
         data={selectedProject} 
-        projects={store.projects}
+        projects={projects}
         onClose={() => setSelectedProject(null)} 
         onSave={(data) => {
-          store.updateProject(data as Project);
           setSelectedProject(null);
         }}
         onDelete={() => setSelectedProject(null)}
