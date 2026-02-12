@@ -1,66 +1,74 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, FileText, Share2, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, FileText, Settings, HelpCircle, ChevronLeft, ChevronRight, FileSearch } from 'lucide-react';
+import { View } from '../types';
 
 interface SidebarProps {
+  currentView: View;
+  onViewChange: (view: View) => void;
   isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
+  onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Projects', path: '/projects', icon: FolderKanban },
-    { name: 'Content', path: '/content', icon: Share2 },
-    { name: 'Documents', path: '/documents', icon: FileText },
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, onToggle }) => {
+  const items: { label: View; icon: React.ReactNode }[] = [
+    { label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    { label: 'Projects', icon: <FolderKanban size={20} /> },
+    { label: 'Content', icon: <FileSearch size={20} /> },
+    { label: 'Documents', icon: <FileText size={20} /> },
   ];
 
   return (
-    <aside className={`${isOpen ? 'w-64' : 'w-16'} bg-[#111112] border-r border-zinc-800/50 flex flex-col transition-all duration-300 h-full z-30`}>
-      <div className="p-4 flex items-center justify-between">
-        {isOpen && <h1 className="text-xl font-bold tracking-tight text-white">Planify</h1>}
-        <button 
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-1.5 hover:bg-zinc-800 rounded-md text-zinc-400"
-          title={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-        >
-          {isOpen ? <PanelLeftClose size={20} /> : <PanelLeft size={20} />}
-        </button>
+    <aside 
+      className={`bg-zinc-950 border-r border-zinc-900 transition-all duration-300 flex flex-col relative z-40
+        ${isOpen ? 'w-64' : 'w-20'} 
+        md:static absolute h-full ${!isOpen ? '-translate-x-full md:translate-x-0' : 'translate-x-0'}
+      `}
+    >
+      <div className="h-14 flex items-center px-6 border-b border-zinc-900">
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 bg-accent rounded-sm flex-shrink-0" />
+          {isOpen && <span className="font-bold text-lg tracking-tight">FocusFlow</span>}
+        </div>
       </div>
 
-      <nav className="flex-1 mt-4 px-3 space-y-1">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center p-2 rounded-lg transition-colors ${
-                isActive 
-                  ? 'bg-zinc-800 text-white font-medium' 
-                  : 'text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300'
-              }`
-            }
+      <nav className="flex-1 px-3 py-4 space-y-1">
+        {items.map((item) => (
+          <button
+            key={item.label}
+            onClick={() => onViewChange(item.label)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
+              ${currentView === item.label 
+                ? 'bg-zinc-900 text-white shadow-sm' 
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50'}
+            `}
           >
-            <item.icon size={20} className="min-w-[20px]" />
-            {isOpen && <span className="ml-3 truncate">{item.name}</span>}
-          </NavLink>
+            <span className={currentView === item.label ? 'text-accent' : ''}>
+              {item.icon}
+            </span>
+            {isOpen && <span className="text-sm font-medium">{item.label}</span>}
+          </button>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-zinc-800/50">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white">
-            JD
-          </div>
-          {isOpen && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">John Doe</p>
-              <p className="text-xs text-zinc-500 truncate">Pro Account</p>
-            </div>
-          )}
-        </div>
+      <div className="px-3 py-4 border-t border-zinc-900 space-y-1">
+        <button className="w-full flex items-center gap-3 px-3 py-2 text-zinc-500 hover:text-zinc-300 transition-colors">
+          <Settings size={20} />
+          {isOpen && <span className="text-sm">Settings</span>}
+        </button>
+        <button className="w-full flex items-center gap-3 px-3 py-2 text-zinc-500 hover:text-zinc-300 transition-colors">
+          <HelpCircle size={20} />
+          {isOpen && <span className="text-sm">Help & Support</span>}
+        </button>
       </div>
+
+      {/* Collapse button for desktop */}
+      <button 
+        onClick={onToggle}
+        className="hidden md:flex absolute -right-3 top-20 w-6 h-6 bg-zinc-900 border border-zinc-800 rounded-full items-center justify-center text-zinc-500 hover:text-white shadow-xl z-50"
+      >
+        {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+      </button>
     </aside>
   );
 };

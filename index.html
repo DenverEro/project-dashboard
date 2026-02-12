@@ -1,51 +1,60 @@
 
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planify Dashboard</title>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FocusFlow Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-      body {
-        font-family: 'Inter', sans-serif;
-        background-color: #0c0c0d;
-        color: #e4e4e7;
-        overflow-x: hidden;
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              stalled: '#ef4444',
+              accent: '#6366f1',
+              dark: '#000000',
+              surface: '#09090b',
+              border: '#27272a'
+            }
+          }
+        }
       }
+    </script>
+    <style>
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #161617;
+        background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #3f3f46;
-        border-radius: 4px;
+        background: #27272a;
+        border-radius: 10px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #52525b;
+        background: #3f3f46;
+      }
+      .custom-blur {
+        backdrop-filter: blur(8px);
       }
     </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "react": "https://esm.sh/react@^19.2.4",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.95.3",
-    "@hello-pangea/dnd": "https://esm.sh/@hello-pangea/dnd@^18.0.1"
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
   }
 }
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-<body class="dark bg-[#0c0c0d]">
+  <body class="bg-black text-white selection:bg-accent selection:text-white antialiased">
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
 </body>
 </html>

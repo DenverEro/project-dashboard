@@ -1,38 +1,39 @@
 
-export type Status = 'Todo' | 'In Progress' | 'Done';
+export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
+export type Status = 'Todo' | 'In Progress' | 'Done' | 'Stalled';
+export type ProjectType = 'Agency' | 'Internal' | 'Content';
+export type ProjectStatus = 'Active' | 'Paused' | 'Completed';
 
 export interface Project {
   id: string;
   name: string;
   description: string;
-  status: 'Active' | 'Paused' | 'Completed' | 'Stalled';
-  type: string;
-  created_at: string;
-  due_date: string;
-  assigned_to: string;
-  created_by: string;
+  status: ProjectStatus;
+  type: ProjectType;
+  color: string;
+  taskCount: number;
+  createdAt: string;
 }
 
 export interface Task {
   id: string;
-  project_id: string;
   title: string;
+  description: string;
   status: Status;
-  priority: number;
-  notes: string;
-  due: string;
-  updated_at: string;
-  created_by: string;
-  project?: Project;
+  priority: Priority;
+  projectId: string;
+  dueDate: string;
+  assignee: string;
+  stalledAt?: string; // ISO string if stalled
+  lastUpdated: string;
 }
 
-export interface Doc {
+export interface Document {
   id: string;
-  project_id: string;
   title: string;
-  body: string;
-  status: string;
-  created_at: string;
-  created_by: string;
-  project?: Project;
+  type: 'SOP' | 'Template' | 'Notes' | 'Reference';
+  projectId?: string;
+  updatedAt: string;
 }
+
+export type View = 'Dashboard' | 'Projects' | 'Content' | 'Documents';

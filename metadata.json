@@ -1,5 +1,5 @@
 {
-  "name": "Planify Dashboard Clone",
-  "description": "A high-fidelity dark-themed project management dashboard with Kanban boards, project tracking, and document management, synced with Supabase.",
+  "name": "FocusFlow ADHD PM Dashboard",
+  "description": "A high-performance, dark-themed project management dashboard optimized for ADHD focus, featuring Kanban boards, project tracking, and DPC metrics.",
   "requestFramePermissions": []
 }
