@@ -130,7 +130,7 @@ export const useProjects = () => {
   useEffect(() => {
     if (!supabase) return;
 
-    const subscription = supabase
+    const channel = supabase
       .channel('projects-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'projects' },
@@ -139,10 +139,23 @@ export const useProjects = () => {
           fetchProjects();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Projects subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to projects changes');
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          console.error('Projects subscription error or closed:', status);
+        }
+      });
+
+    // Fallback: poll every 10 seconds in case realtime misses something
+    const pollInterval = setInterval(() => {
+      fetchProjects();
+    }, 10000);
 
     return () => {
-      subscription.unsubscribe();
+      channel.unsubscribe();
+      clearInterval(pollInterval);
     };
   }, [fetchProjects]);
 

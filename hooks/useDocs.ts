@@ -126,7 +126,7 @@ export const useDocs = () => {
   useEffect(() => {
     if (!supabase) return;
 
-    const subscription = supabase
+    const channel = supabase
       .channel('documents-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'documents' },
@@ -135,10 +135,23 @@ export const useDocs = () => {
           fetchDocs();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Documents subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to documents changes');
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          console.error('Documents subscription error or closed:', status);
+        }
+      });
+
+    // Fallback: poll every 10 seconds in case realtime misses something
+    const pollInterval = setInterval(() => {
+      fetchDocs();
+    }, 10000);
 
     return () => {
-      subscription.unsubscribe();
+      channel.unsubscribe();
+      clearInterval(pollInterval);
     };
   }, [fetchDocs]);
 
