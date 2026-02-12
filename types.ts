@@ -1,7 +1,7 @@
 
 export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
 export type Status = 'Todo' | 'In Progress' | 'Done' | 'Stalled';
-export type ProjectType = 'Agency' | 'Internal' | 'Content';
+export type ProjectType = 'Business' | 'Hobby' | 'Personal';
 export type ProjectStatus = 'Active' | 'Paused' | 'Completed';
 
 export interface Project {

@@ -12,7 +12,7 @@ CREATE TABLE projects (
   name TEXT NOT NULL,
   description TEXT DEFAULT '',
   status TEXT DEFAULT 'Active' CHECK (status IN ('Active', 'Paused', 'Completed')),
-  type TEXT DEFAULT 'Internal' CHECK (type IN ('Agency', 'Internal', 'Content')),
+  type TEXT DEFAULT 'Business' CHECK (type IN ('Business', 'Hobby', 'Personal')),
   color TEXT DEFAULT 'indigo',
   task_count INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -128,13 +128,13 @@ CREATE TRIGGER update_documents_updated_at BEFORE UPDATE ON documents
 
 -- Insert sample data
 INSERT INTO projects (name, description, status, type, color, task_count) VALUES
-  ('DPC', 'Deploy Hostinger project', 'Paused', 'Internal', 'indigo', 12),
-  ('Nanobot', 'Self-host Gmail replacement', 'Active', 'Internal', 'orange', 8),
-  ('OpenClaw-Unify', '5 to 1 LLM gateway', 'Active', 'Agency', 'emerald', 5),
-  ('Boringbest', 'Affiliate engine', 'Active', 'Content', 'pink', 3),
-  ('Tetris-Task-Game', 'Gamified task management', 'Active', 'Content', 'purple', 15),
-  ('Stardew-Farm-Manager', 'Switch farm automation', 'Active', 'Internal', 'blue', 2),
-  ('Dashboard', 'This specific tool', 'Active', 'Internal', 'cyan', 20);
+  ('DPC', 'Deploy Hostinger project', 'Paused', 'Business', 'indigo', 12),
+  ('Nanobot', 'Self-host Gmail replacement', 'Active', 'Business', 'orange', 8),
+  ('OpenClaw-Unify', '5 to 1 LLM gateway', 'Active', 'Business', 'emerald', 5),
+  ('Boringbest', 'Affiliate engine', 'Active', 'Hobby', 'pink', 3),
+  ('Tetris-Task-Game', 'Gamified task management', 'Active', 'Hobby', 'purple', 15),
+  ('Stardew-Farm-Manager', 'Switch farm automation', 'Active', 'Personal', 'blue', 2),
+  ('Dashboard', 'This specific tool', 'Active', 'Personal', 'cyan', 20);
 
 INSERT INTO tasks (title, description, status, priority, project_id, due_date, assignee) VALUES
   ('DPC audit', 'Full system audit for stalled project', 'Stalled', 'High', (SELECT id FROM projects WHERE name = 'DPC'), '2026-02-10', 'AC'),

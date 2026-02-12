@@ -1,14 +1,19 @@
-
 import React from 'react';
-import { Project } from '../types';
+import { Project, Task } from '../types';
 import { Plus, MoreHorizontal } from 'lucide-react';
 
 interface ProjectsTableProps {
   projects: Project[];
+  tasks: Task[];
   onProjectClick: (p: Project) => void;
 }
 
-const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects, onProjectClick }) => {
+const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects, tasks, onProjectClick }) => {
+  // Calculate actual task count for each project
+  const getTaskCount = (projectId: string) => {
+    return tasks.filter(task => task.projectId === projectId).length;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -53,7 +58,7 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects, onProjectClick 
                   </span>
                 </td>
                 <td className="py-4 px-4 text-xs text-zinc-400">{proj.type}</td>
-                <td className="py-4 px-4 text-xs text-zinc-400">{proj.taskCount}</td>
+                <td className="py-4 px-4 text-xs text-zinc-400">{getTaskCount(proj.id)}</td>
                 <td className="py-4 px-4 text-xs text-zinc-500 text-right">
                   {new Date(proj.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                 </td>

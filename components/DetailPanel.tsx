@@ -114,7 +114,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ type, isOpen, data, projects,
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as ProjectType })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
                   >
-                    {['Agency', 'Internal', 'Content'].map(t => <option key={t} value={t}>{t}</option>)}
+                    {['Business', 'Hobby', 'Personal'].map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
               )}

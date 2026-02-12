@@ -137,6 +137,7 @@ const App: React.FC = () => {
       case 'Projects':
         return <ProjectsTable 
           projects={projects} 
+          tasks={tasks}
           onProjectClick={setSelectedProject} 
         />;
       case 'Documents':
