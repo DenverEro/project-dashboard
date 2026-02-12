@@ -1,14 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from './store';
 import { View, Task, Project } from './types';
 import Sidebar from './components/Sidebar';
 import KanbanBoard from './components/KanbanBoard';
+import TaskList from './components/TaskList';
 import ProjectsTable from './components/ProjectsTable';
 import DocsList from './components/DocsList';
 import StatsBar from './components/StatsBar';
 import DetailPanel from './components/DetailPanel';
-import { Search, Bell, Plus, Menu } from 'lucide-react';
+import { Search, Bell, Plus, Menu, LayoutGrid, List } from 'lucide-react';
+
+const MOBILE_BREAKPOINT = 1024;
 
 const App: React.FC = () => {
   const store = useStore();
@@ -16,27 +19,58 @@ const App: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
+  const [forceListView, setForceListView] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const renderContent = () => {
     switch (currentView) {
       case 'Dashboard':
-        return <KanbanBoard 
-          tasks={store.tasks} 
-          projects={store.projects} 
-          onTaskClick={setSelectedTask} 
-          onMoveTask={store.moveTask}
-          onAddTask={(status) => setSelectedTask({
-            id: Math.random().toString(36).substr(2, 9),
-            title: '',
-            description: '',
-            status: status,
-            priority: 'Medium',
-            projectId: store.projects[0]?.id || '',
-            dueDate: new Date().toISOString().split('T')[0],
-            assignee: 'AC',
-            lastUpdated: new Date().toISOString()
-          })}
-        />;
+        const showListView = isMobile || forceListView;
+        return showListView ? (
+          <TaskList 
+            tasks={store.tasks} 
+            projects={store.projects} 
+            onTaskClick={setSelectedTask}
+            onAddTask={(status) => setSelectedTask({
+              id: Math.random().toString(36).substr(2, 9),
+              title: '',
+              description: '',
+              status: status,
+              priority: 'Medium',
+              projectId: store.projects[0]?.id || '',
+              dueDate: new Date().toISOString().split('T')[0],
+              assignee: 'AC',
+              lastUpdated: new Date().toISOString()
+            })}
+          />
+        ) : (
+          <KanbanBoard 
+            tasks={store.tasks} 
+            projects={store.projects} 
+            onTaskClick={setSelectedTask} 
+            onMoveTask={store.moveTask}
+            onAddTask={(status) => setSelectedTask({
+              id: Math.random().toString(36).substr(2, 9),
+              title: '',
+              description: '',
+              status: status,
+              priority: 'Medium',
+              projectId: store.projects[0]?.id || '',
+              dueDate: new Date().toISOString().split('T')[0],
+              assignee: 'AC',
+              lastUpdated: new Date().toISOString()
+            })}
+          />
+        );
       case 'Projects':
         return <ProjectsTable 
           projects={store.projects} 
@@ -74,6 +108,24 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-3">
+            {currentView === 'Dashboard' && !isMobile && (
+              <div className="flex items-center bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+                <button
+                  onClick={() => setForceListView(false)}
+                  className={`p-1.5 rounded transition-colors ${!forceListView ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  title="Board View"
+                >
+                  <LayoutGrid size={16} />
+                </button>
+                <button
+                  onClick={() => setForceListView(true)}
+                  className={`p-1.5 rounded transition-colors ${forceListView ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  title="List View"
+                >
+                  <List size={16} />
+                </button>
+              </div>
+            )}
             <div className="relative hidden md:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
               <input 
