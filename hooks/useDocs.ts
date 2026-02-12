@@ -52,9 +52,14 @@ export const useDocs = () => {
   // Update document
   const updateDoc = useCallback(async (id: string, updates: Partial<Document>) => {
     try {
+      const updatesWithTimestamp = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error: supabaseError } = await supabase
         .from('documents')
-        .update(updates)
+        .update(updatesWithTimestamp)
         .eq('id', id)
         .select()
         .single();

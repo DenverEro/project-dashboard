@@ -30,7 +30,7 @@ CREATE TABLE tasks (
   due_date DATE,
   assignee TEXT DEFAULT 'AC',
   stalled_at TIMESTAMPTZ,
-  last_updated TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -120,7 +120,7 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_tasks_last_updated BEFORE UPDATE ON tasks
+CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON tasks
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_documents_updated_at BEFORE UPDATE ON documents

@@ -52,9 +52,14 @@ export const useProjects = () => {
   // Update project
   const updateProject = useCallback(async (id: string, updates: Partial<Project>) => {
     try {
+      const updatesWithTimestamp = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error: supabaseError } = await supabase
         .from('projects')
-        .update(updates)
+        .update(updatesWithTimestamp)
         .eq('id', id)
         .select()
         .single();

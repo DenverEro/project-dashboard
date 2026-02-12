@@ -52,9 +52,14 @@ export const useTasks = () => {
   // Update task
   const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
     try {
+      const updatesWithTimestamp = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error: supabaseError } = await supabase
         .from('tasks')
-        .update(updates)
+        .update(updatesWithTimestamp)
         .eq('id', id)
         .select()
         .single();
@@ -88,13 +93,14 @@ export const useTasks = () => {
     }
   }, []);
 
-  // Move task (for DnD) - upserts status
+  // Move task (for DnD) - upserts status with updated_at
   const moveTask = useCallback(async (taskId: string, newStatus: Task['status']) => {
     try {
+      const now = new Date().toISOString();
       const updates = { 
         status: newStatus,
-        stalled_at: newStatus === 'Stalled' ? new Date().toISOString() : null,
-        last_updated: new Date().toISOString()
+        stalled_at: newStatus === 'Stalled' ? now : null,
+        updated_at: now
       };
 
       const { data, error: supabaseError } = await supabase
@@ -106,6 +112,7 @@ export const useTasks = () => {
 
       if (supabaseError) throw supabaseError;
       
+      // Optimistic update
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
       return data;
     } catch (err) {

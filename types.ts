@@ -25,7 +25,7 @@ export interface Task {
   dueDate: string;
   assignee: string;
   stalledAt?: string; // ISO string if stalled
-  lastUpdated: string;
+  updatedAt: string;
 }
 
 export interface Document {
