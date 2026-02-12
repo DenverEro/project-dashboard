@@ -2,6 +2,26 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { Document } from '../types';
 
+// Transform snake_case from Supabase to camelCase for frontend
+const transformDocFromDB = (dbDoc: any): Document => ({
+  id: dbDoc.id,
+  title: dbDoc.title,
+  type: dbDoc.type,
+  projectId: dbDoc.project_id,
+  content: dbDoc.content,
+  updatedAt: dbDoc.updated_at
+});
+
+// Transform camelCase from frontend to snake_case for Supabase
+const transformDocToDB = (doc: Partial<Document>): any => {
+  const dbDoc: any = {};
+  if (doc.title !== undefined) dbDoc.title = doc.title;
+  if (doc.type !== undefined) dbDoc.type = doc.type;
+  if (doc.projectId !== undefined) dbDoc.project_id = doc.projectId;
+  if (doc.content !== undefined) dbDoc.content = doc.content;
+  return dbDoc;
+};
+
 export const useDocs = () => {
   const [docs, setDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +40,9 @@ export const useDocs = () => {
 
       if (supabaseError) throw supabaseError;
       
-      setDocs(data || []);
+      // Transform snake_case to camelCase
+      const transformedDocs = (data || []).map(transformDocFromDB);
+      setDocs(transformedDocs);
     } catch (err) {
       console.error('Error fetching documents:', err);
       setError('Failed to fetch documents');
@@ -32,16 +54,19 @@ export const useDocs = () => {
   // Insert document
   const insertDoc = useCallback(async (doc: Omit<Document, 'id'>) => {
     try {
+      const dbDoc = transformDocToDB(doc);
+      
       const { data, error: supabaseError } = await supabase
         .from('documents')
-        .insert(doc)
+        .insert(dbDoc)
         .select()
         .single();
 
       if (supabaseError) throw supabaseError;
       
-      setDocs(prev => [data, ...prev]);
-      return data;
+      const transformedDoc = transformDocFromDB(data);
+      setDocs(prev => [transformedDoc, ...prev]);
+      return transformedDoc;
     } catch (err) {
       console.error('Error inserting document:', err);
       setError('Failed to insert document');
@@ -52,22 +77,21 @@ export const useDocs = () => {
   // Update document
   const updateDoc = useCallback(async (id: string, updates: Partial<Document>) => {
     try {
-      const updatesWithTimestamp = {
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
+      const dbUpdates = transformDocToDB(updates);
+      dbUpdates.updated_at = new Date().toISOString();
 
       const { data, error: supabaseError } = await supabase
         .from('documents')
-        .update(updatesWithTimestamp)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
 
       if (supabaseError) throw supabaseError;
       
-      setDocs(prev => prev.map(d => d.id === id ? data : d));
-      return data;
+      const transformedDoc = transformDocFromDB(data);
+      setDocs(prev => prev.map(d => d.id === id ? transformedDoc : d));
+      return transformedDoc;
     } catch (err) {
       console.error('Error updating document:', err);
       setError('Failed to update document');

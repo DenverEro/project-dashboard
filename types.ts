@@ -33,6 +33,7 @@ export interface Document {
   title: string;
   type: 'SOP' | 'Template' | 'Notes' | 'Reference';
   projectId?: string;
+  content?: string;
   updatedAt: string;
 }
 

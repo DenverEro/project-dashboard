@@ -2,6 +2,34 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { Task } from '../types';
 
+// Transform snake_case from Supabase to camelCase for frontend
+const transformTaskFromDB = (dbTask: any): Task => ({
+  id: dbTask.id,
+  title: dbTask.title,
+  description: dbTask.description,
+  status: dbTask.status,
+  priority: dbTask.priority,
+  projectId: dbTask.project_id,
+  dueDate: dbTask.due_date,
+  assignee: dbTask.assignee,
+  stalledAt: dbTask.stalled_at,
+  updatedAt: dbTask.updated_at
+});
+
+// Transform camelCase from frontend to snake_case for Supabase
+const transformTaskToDB = (task: Partial<Task>): any => {
+  const dbTask: any = {};
+  if (task.title !== undefined) dbTask.title = task.title;
+  if (task.description !== undefined) dbTask.description = task.description;
+  if (task.status !== undefined) dbTask.status = task.status;
+  if (task.priority !== undefined) dbTask.priority = task.priority;
+  if (task.projectId !== undefined) dbTask.project_id = task.projectId;
+  if (task.dueDate !== undefined) dbTask.due_date = task.dueDate;
+  if (task.assignee !== undefined) dbTask.assignee = task.assignee;
+  if (task.stalledAt !== undefined) dbTask.stalled_at = task.stalledAt;
+  return dbTask;
+};
+
 export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +48,9 @@ export const useTasks = () => {
 
       if (supabaseError) throw supabaseError;
       
-      setTasks(data || []);
+      // Transform snake_case to camelCase
+      const transformedTasks = (data || []).map(transformTaskFromDB);
+      setTasks(transformedTasks);
     } catch (err) {
       console.error('Error fetching tasks:', err);
       setError('Failed to fetch tasks');
@@ -32,16 +62,19 @@ export const useTasks = () => {
   // Insert task
   const insertTask = useCallback(async (task: Omit<Task, 'id'>) => {
     try {
+      const dbTask = transformTaskToDB(task);
+      
       const { data, error: supabaseError } = await supabase
         .from('tasks')
-        .insert(task)
+        .insert(dbTask)
         .select()
         .single();
 
       if (supabaseError) throw supabaseError;
       
-      setTasks(prev => [data, ...prev]);
-      return data;
+      const transformedTask = transformTaskFromDB(data);
+      setTasks(prev => [transformedTask, ...prev]);
+      return transformedTask;
     } catch (err) {
       console.error('Error inserting task:', err);
       setError('Failed to insert task');
@@ -52,22 +85,21 @@ export const useTasks = () => {
   // Update task
   const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
     try {
-      const updatesWithTimestamp = {
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
+      const dbUpdates = transformTaskToDB(updates);
+      dbUpdates.updated_at = new Date().toISOString();
 
       const { data, error: supabaseError } = await supabase
         .from('tasks')
-        .update(updatesWithTimestamp)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
 
       if (supabaseError) throw supabaseError;
       
-      setTasks(prev => prev.map(t => t.id === id ? data : t));
-      return data;
+      const transformedTask = transformTaskFromDB(data);
+      setTasks(prev => prev.map(t => t.id === id ? transformedTask : t));
+      return transformedTask;
     } catch (err) {
       console.error('Error updating task:', err);
       setError('Failed to update task');
@@ -112,9 +144,9 @@ export const useTasks = () => {
 
       if (supabaseError) throw supabaseError;
       
-      // Optimistic update
-      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
-      return data;
+      const transformedTask = transformTaskFromDB(data);
+      setTasks(prev => prev.map(t => t.id === taskId ? transformedTask : t));
+      return transformedTask;
     } catch (err) {
       console.error('Error moving task:', err);
       setError('Failed to move task');
