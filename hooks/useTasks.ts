@@ -181,14 +181,8 @@ export const useTasks = () => {
         }
       });
 
-    // Fallback: poll every 10 seconds in case realtime misses something
-    const pollInterval = setInterval(() => {
-      fetchTasks();
-    }, 10000);
-
     return () => {
       channel.unsubscribe();
-      clearInterval(pollInterval);
     };
   }, [fetchTasks]);
 

@@ -144,14 +144,8 @@ export const useDocs = () => {
         }
       });
 
-    // Fallback: poll every 10 seconds in case realtime misses something
-    const pollInterval = setInterval(() => {
-      fetchDocs();
-    }, 10000);
-
     return () => {
       channel.unsubscribe();
-      clearInterval(pollInterval);
     };
   }, [fetchDocs]);
 
