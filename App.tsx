@@ -56,10 +56,22 @@ const App: React.FC = () => {
 
   const handleSaveTask = async (data: Task) => {
     try {
+      // Transform camelCase to snake_case for database
+      const taskData = {
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        project_id: data.projectId,
+        due_date: data.dueDate,
+        assignee: data.assignee,
+        stalled_at: data.stalledAt
+      };
+
       if (tasks.find(t => t.id === data.id)) {
-        await updateTask(data.id, data);
+        await updateTask(data.id, taskData);
       } else {
-        await insertTask(data);
+        await insertTask(taskData);
       }
       setSelectedTask(null);
     } catch (err) {

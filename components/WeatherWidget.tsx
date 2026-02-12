@@ -28,7 +28,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         
         // Using Open-Meteo API (free, no key required)
         const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=2`
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=2&temperature_unit=fahrenheit`
         );
         
         if (!response.ok) {
