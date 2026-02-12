@@ -56,16 +56,16 @@ const App: React.FC = () => {
 
   const handleSaveTask = async (data: Task) => {
     try {
-      // Transform camelCase to snake_case for database
+      // Pass camelCase data - the hook will transform to snake_case
       const taskData = {
         title: data.title,
         description: data.description,
         status: data.status,
         priority: data.priority,
-        project_id: data.projectId,
-        due_date: data.dueDate,
+        projectId: data.projectId,
+        dueDate: data.dueDate,
         assignee: data.assignee,
-        stalled_at: data.stalledAt
+        stalledAt: data.stalledAt
       };
 
       if (tasks.find(t => t.id === data.id)) {

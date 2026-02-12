@@ -52,7 +52,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, project, onClick }) => {
       <div className="flex items-center justify-between text-[11px] text-zinc-500">
         <div className="flex items-center gap-1">
           <Calendar size={12} />
-          <span>{new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+          <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'No date'}</span>
         </div>
         <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 text-[9px] font-bold uppercase tracking-tighter">
           {task.assignee}
